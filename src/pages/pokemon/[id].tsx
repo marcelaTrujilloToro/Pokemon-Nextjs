@@ -134,8 +134,8 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
     //     }
     //   }
     // ],
-    // fallback: "blocking"
-    fallback: false // si la pagina no existe en la lista, tira un 404
+    fallback: "blocking" // asi no este en la lista predeterminada busca la pagina y la trae
+    // fallback: false // si la pagina no existe en la lista, tira un 404
   }
 }
 
@@ -145,10 +145,24 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   const { id } = params as { id: string };
 
+  const pokemon =  await getPokemonInfo(id)
+
+  //validar que pasa cuando no existe el pokemon en el BE
+  if (!pokemon) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false
+      }
+    }
+  }
+
   return {
     props: {
-      pokemon: await getPokemonInfo(id)
-    }
+      pokemon
+    },
+    //para que se vuelva a validar la pagina cada cierto tiempo (incremental static regeneration ISG)
+    revalidate: 86400// en segundos
   }
 }
 
